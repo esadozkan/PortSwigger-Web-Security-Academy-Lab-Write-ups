@@ -20,3 +20,26 @@ Alternatif payloadlar: ' OR '1'='1  |  ' OR 1=1#  |  ' OR 1=1/*
 Sonuç: Çözüldü ✅
 
 ---
+
+Lab: SQL injection vulnerability allowing login bypass
+Zorluk: Kolay - https://portswigger.net/web-security/sql-injection/lab-login-bypass
+
+Hedef: Şifre bilmeden administrator olarak login olmak.
+
+Zaafiyet: Login sorgusu muhtemelen şu şekilde:
+SELECT * FROM users WHERE username = 'x' AND password = 'y'
+Önce tırnak (') denendi → syntax error döndü, injection'ın işareti.
+
+Payload:
+Username: administrator'--
+Password: (herhangi bir şey)
+
+Açıklama:
+- ' → username='' stringini kapatıyor.
+- -- → geri kalan sorguyu (AND password='...') yorum satırına alıp siliyor.
+- Sonuç sorgu: SELECT * FROM users WHERE username='administrator'
+- Password kontrolü hiç çalışmıyor, administrator olarak login oluyor.
+
+Sonuç: Çözüldü ✅
+
+---

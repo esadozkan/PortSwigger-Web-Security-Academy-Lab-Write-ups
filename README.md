@@ -14,7 +14,7 @@
 
 | Konu / Topic | Çözülen / Solved | Rapor |
 |---|---|---|
-| SQL Injection | 1 / 18 | [SQL_Injections.md](./SQL_Injections.md) |
+| SQL Injection | 2 / 18 | [SQL_Injections.md](./SQL_Injections.md) |
 
 ---
 
