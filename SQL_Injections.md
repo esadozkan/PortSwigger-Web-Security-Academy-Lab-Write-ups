@@ -43,3 +43,45 @@ Açıklama:
 Sonuç: Çözüldü ✅
 
 ---
+
+Lab: SQL injection attack, querying the database type and version on Oracle
+Zorluk: Kolay - https://portswigger.net/web-security/sql-injection/examining-the-database/lab-querying-database-version-oracle
+
+Hedef: Oracle veritabanının tipini ve versiyonunu sorguyla öğrenmek.
+
+Zaafiyet: category parametresi filtrelenmeden sorguya ekleniyor (UNION-based injection).
+
+Payload:
+GET /filter?category=Accessories'UNION SELECT banner, NULL FROM v$version--
+
+Açıklama:
+- ' → category string'ini kapatıyor (ilk denemede bu tırnak eksikti, sorgu syntax olarak bozuk kalıp 500 dönüyordu).
+- UNION SELECT, orijinal sorgunun sonucuna ikinci bir sorgunun sonucunu ekliyor; sütun sayısı orijinal sorguyla birebir eşleşmeli — burada 2 sütun gerekiyordu.
+- Oracle'da FROM'suz SELECT yazılamaz (MySQL'deki SELECT @@version gibi olmuyor), bu yüzden bir tablo/view gerekiyor.
+- v$version → Oracle'ın versiyon bilgisini tutan sistem view'ı, banner sütunu bu bilgiyi taşıyor.
+- NULL → 2. sütunu tip uyuşmazlığı yaratmadan doldurmak için kullanılan placeholder.
+- -- → geri kalan sorguyu susturuyor.
+- Sonuç: sayfada ürün adı yerine Oracle versiyon banner'ı görüntüleniyor.
+
+---
+
+Lab: SQL injection attack, querying the database type and version on MySQL and Microsoft
+Zorluk: Kolay - https://portswigger.net/web-security/sql-injection/examining-the-database/lab-querying-database-version-mysql-microsoft
+
+Hedef: Veritabanı versiyon string'ini görüntülemek.
+
+Zaafiyet: category parametresi filtrelenmeden sorguya ekleniyor (UNION-based injection).
+
+Payload:
+GET /filter?category=Gifts' UNION SELECT @@version, 'deneme'#
+
+Açıklama:
+- ' → category string'ini kapatıyor.
+- @@version → MySQL ve Microsoft SQL Server'a özgü sistem değişkeni, DB versiyon bilgisini doğrudan döndürüyor (Oracle'daki gibi FROM'lu bir view'a gerek yok — bu labın Oracle'dan farkı).
+- 'deneme' → 2. sütunu doldurmak için placeholder (2 sütun bekleniyor).
+- # → MySQL'de tek satır yorum karakteri, -- alternatifi 
+- Sonuç: sayfada ürün adı yerine DB versiyon bilgisi görüntüleniyor.
+
+Sonuç: Çözüldü ✅
+
+---
